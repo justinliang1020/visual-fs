@@ -63,8 +63,6 @@ VisualFS plugin CSS
   border: 2px solid black;
   margin-bottom: 8px;
   display: flex;
-  align-items: center;
-  justify-content: center;
   background-color: white;
   padding: 8px;
   box-sizing: border-box;
@@ -84,6 +82,8 @@ VisualFS plugin CSS
 
 .visualfs-folder-square {
   /* Additional folder-specific styling if needed */
+  align-items: center;
+  justify-content: center;
 }
 
 .visualfs-file-square {
@@ -98,4 +98,3 @@ VisualFS plugin CSS
   margin-top: 4px;
   color: var(--text-normal);
 }
-
