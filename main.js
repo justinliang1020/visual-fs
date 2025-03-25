@@ -139,7 +139,7 @@ class VisualFSView extends ItemView {
   }
 
   async openFile(file) {
-    const leaf = this.app.workspace.getLeaf("split");
+    const leaf = this.app.workspace.getLeaf();
     await leaf.openFile(file);
   }
 
@@ -210,8 +210,8 @@ module.exports = class VisualFSPlugin extends Plugin {
       return;
     }
 
-    // Otherwise, create and open the view
-    const leaf = workspace.getLeaf("split", "vertical");
+    // Otherwise, create and open the view in a new tab
+    const leaf = workspace.getLeaf();
     await leaf.setViewState({
       type: VIEW_TYPE_VISUALFS,
       active: true,
