@@ -1,6 +1,7 @@
 const { ItemView, Notice, Plugin, TFolder, TFile } = require("obsidian");
 
 const VIEW_TYPE_VISUALFS = "visualfs-view";
+const FILE_PREVIEW_CONTENT_LENGTH = 300;
 
 class VisualFSView extends ItemView {
   constructor(leaf, plugin) {
@@ -161,7 +162,8 @@ class VisualFSView extends ItemView {
         const content = await this.app.vault.read(file);
         // Get first few words, up to 50 characters
         return (
-          content.trim().substring(0, 50) + (content.length > 50 ? "..." : "")
+          content.trim().substring(0, FILE_PREVIEW_CONTENT_LENGTH) +
+          (content.length > FILE_PREVIEW_CONTENT_LENGTH ? "..." : "")
         );
       }
       return file.extension.toUpperCase() + " file";
