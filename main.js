@@ -50,7 +50,7 @@ class VisualFSView extends ItemView {
     }
 
     // Path display
-    const pathDisplay = header.createDiv({
+    header.createDiv({
       cls: "visualfs-path",
       text: this.currentPath,
     });
