@@ -39,7 +39,7 @@ VisualFS plugin CSS
 
 .visualfs-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
   gap: 15px;
 }
 
@@ -47,8 +47,6 @@ VisualFS plugin CSS
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 10px;
-  border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.2s ease;
   text-align: center;
@@ -58,17 +56,38 @@ VisualFS plugin CSS
   background-color: var(--background-modifier-hover);
 }
 
-.visualfs-icon-container {
-  font-size: 32px;
+/* Square styling - consistent dimensions with black border */
+.visualfs-square {
+  width: 272px;
+  height: 272px;
+  border: 2px solid black;
   margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+  padding: 8px;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
-.visualfs-folder {
-  color: var(--text-accent);
+.visualfs-square-content {
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  color: black;
 }
 
-.visualfs-file {
-  color: var(--text-normal);
+.visualfs-folder-square {
+  /* Additional folder-specific styling if needed */
+}
+
+.visualfs-file-square {
+  /* Additional file-specific styling if needed */
 }
 
 .visualfs-item-name {
@@ -76,4 +95,7 @@ VisualFS plugin CSS
   word-break: break-word;
   overflow: hidden;
   max-height: 36px; /* Approx 3 lines */
+  margin-top: 4px;
+  color: var(--text-normal);
 }
+

@@ -103,25 +103,33 @@ class VisualFSView extends ItemView {
     sortedChildren.forEach((file) => {
       const item = gridEl.createDiv({ cls: "visualfs-item" });
 
-      const iconContainer = item.createDiv({ cls: "visualfs-icon-container" });
+      const square = item.createDiv({ cls: "visualfs-square" });
 
       if (file instanceof TFolder) {
-        iconContainer.innerHTML =
-          '<svg viewBox="0 0 100 100" class="visualfs-folder" width="24" height="24"><path fill="currentColor" d="M 6,19 V 81 H 94 V 19 Z M 49,45 l 45,0 0,30 -90,0 0,-55 30,0 15,25 z"></path></svg>';
+        square.addClass("visualfs-folder-square");
+        const folderContent = `${file.name} (${file.children?.length || 0})`;
+        square.createDiv({
+          text: folderContent,
+          cls: "visualfs-square-content",
+        });
 
         item.addEventListener("click", () => {
           this.navigateToFolder(file.path);
         });
       } else if (file instanceof TFile) {
-        iconContainer.innerHTML =
-          '<svg viewBox="0 0 100 100" class="visualfs-file" width="24" height="24"><path fill="currentColor" d="M 25,2 V 98 H 75 V 30 L 47,2 Z M 48,29 V 6 L 71,29 Z"></path></svg>';
+        square.addClass("visualfs-file-square");
+
+        // Get first few words of the file content (up to 50 characters)
+        this.getFilePreview(file).then((preview) => {
+          square.createDiv({ text: preview, cls: "visualfs-square-content" });
+        });
 
         item.addEventListener("click", () => {
           this.openFile(file);
         });
-      }
 
-      item.createDiv({ text: file.name, cls: "visualfs-item-name" });
+        item.createDiv({ text: file.name, cls: "visualfs-item-name" });
+      }
     });
   }
 
@@ -137,6 +145,29 @@ class VisualFSView extends ItemView {
 
   showErrorMessage(message) {
     new Notice(message);
+  }
+
+  async getFilePreview(file) {
+    try {
+      // Only get preview for text files
+      if (
+        file.extension === "md" ||
+        file.extension === "txt" ||
+        file.extension === "js" ||
+        file.extension === "css" ||
+        file.extension === "html" ||
+        file.extension === "json"
+      ) {
+        const content = await this.app.vault.read(file);
+        // Get first few words, up to 50 characters
+        return (
+          content.trim().substring(0, 50) + (content.length > 50 ? "..." : "")
+        );
+      }
+      return file.extension.toUpperCase() + " file";
+    } catch (error) {
+      return "Preview unavailable";
+    }
   }
 }
 
