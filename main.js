@@ -159,7 +159,7 @@ class VisualFSView extends ItemView {
         file.extension === "html" ||
         file.extension === "json"
       ) {
-        const content = await this.app.vault.read(file);
+        const content = await this.app.vault.cachedRead(file);
         // Get first few words, up to 50 characters
         return (
           content.trim().substring(0, FILE_PREVIEW_CONTENT_LENGTH) +
