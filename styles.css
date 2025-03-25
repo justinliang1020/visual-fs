@@ -1,9 +1,79 @@
 /*
-This CSS file is included with your plugin and is available in the app when
-your plugin is enabled. If your plugin does not need CSS, delete this file.
+VisualFS plugin CSS
 */
 
-/* Line 34 of main.js adds this class to the ribbon icon */
-div.my-plugin-ribbon-class {
-	color: red;
+.visualfs-icon {
+  color: var(--interactive-accent);
+}
+
+.visualfs-view {
+  padding: 10px;
+}
+
+.visualfs-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  gap: 10px;
+}
+
+.visualfs-back-button {
+  cursor: pointer;
+  padding: 3px 10px;
+  border-radius: 4px;
+  background-color: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+.visualfs-back-button:hover {
+  opacity: 0.9;
+}
+
+.visualfs-path {
+  font-size: 16px;
+  flex-grow: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.visualfs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 15px;
+}
+
+.visualfs-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  text-align: center;
+}
+
+.visualfs-item:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+.visualfs-icon-container {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.visualfs-folder {
+  color: var(--text-accent);
+}
+
+.visualfs-file {
+  color: var(--text-normal);
+}
+
+.visualfs-item-name {
+  font-size: 12px;
+  word-break: break-word;
+  overflow: hidden;
+  max-height: 36px; /* Approx 3 lines */
 }

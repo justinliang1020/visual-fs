@@ -1,158 +1,192 @@
-import {
-  MarkdownView,
-  Modal,
-  Notice,
-  Plugin,
-  PluginSettingTab,
-  Setting,
-} from "obsidian";
+const { ItemView, Notice, Plugin, TFolder, TFile } = require("obsidian");
 
-// One default setting, `myString`
-const DEFAULT_SETTINGS = {
-  myString: "potato",
-};
+const VIEW_TYPE_VISUALFS = "visualfs-view";
 
-// Export the main MyPlugin class
-module.exports = class MyPlugin extends Plugin {
-  async onload() {
-    await this.loadSettings();
-
-    // Create a clickable icon in the left ribbon
-    // https://docs.obsidian.md/Plugins/User+interface/Ribbon+actions
-    const ribbonIconEl = this.addRibbonIcon(
-      "dice",
-      "Sample Plugin",
-      (event) => {
-        // This function is called when the user clicks the ribbon icon
-        // Pop up a notice with a text string including the `myString` setting
-        new Notice(`Notice! Your setting is: ${this.settings.myString}`);
-      },
-    );
-
-    // Add a CSS class to the ribbon icon element
-    // The style for this class is in the `styles.css` file
-    ribbonIconEl.addClass("my-plugin-ribbon-class");
-
-    // Add a status bar item to the bottom of the app (desktop only)
-    // https://docs.obsidian.md/Plugins/User+interface/Status+bar
-    const statusBarItemEl = this.addStatusBarItem();
-    statusBarItemEl.setText("ʕ•ᴥ•ʔ");
-
-    // Add a simple command to the Command Pallet
-    // https://docs.obsidian.md/Plugins/User+interface/Commands
-    this.addCommand({
-      id: "open-sample-modal-simple",
-      name: "Open sample modal (simple)",
-      callback: () => {
-        new SampleModal(this.app).open();
-      },
-    });
-
-    // Add an editor command that can operate on the current editor instance
-    // https://docs.obsidian.md/Plugins/User+interface/Commands#Editor+commands
-    this.addCommand({
-      id: "sample-editor-command",
-      name: "Sample editor command",
-      editorCallback: (editor, view) => {
-        console.log(editor.getSelection());
-        editor.replaceSelection("Sample Editor Command");
-      },
-    });
-
-    // Add a conditional command that checks whether the current state
-    // of the app allows for execution of the command
-    // https://docs.obsidian.md/Plugins/User+interface/Commands#Conditional+commands
-    this.addCommand({
-      id: "open-sample-modal-complex",
-      name: "Open sample modal (complex)",
-      checkCallback: (checking) => {
-        // Conditions to check
-        const markdownView =
-          this.app.workspace.getActiveViewOfType(MarkdownView);
-        if (markdownView) {
-          // If `checking` is true, we're only checking if the command
-          // can be run. If `checking` is false, then we want to actually
-          // perform the operation.
-          if (!checking) {
-            new SampleModal(this.app).open();
-          }
-
-          // This command will only show up in the Command Palette when
-          // the check returns true
-          return true;
-        }
-      },
-    });
-
-    // Add a settings tab so the user can configure the plugin
-    // The settings interface is created below in `class SampleSettingTab`
-    this.addSettingTab(new SampleSettingTab(this.app, this));
-
-    // When you use this function to register DOM event listeners they'll
-    // be cleaned up automatically when the plugin is disabled
-    this.registerDomEvent(document, "click", (event) => {
-      console.log("click", event);
-    });
-
-    // When you use this function to register intervals they'll be cleaned up
-    // automatically when the plugin is disabled
-    this.registerInterval(
-      window.setInterval(() => console.log("setInterval"), 5 * 60 * 1000),
-    );
-  }
-
-  // Handle any side-effects that are not automatically cleaned up
-  onunload() {}
-
-  async loadSettings() {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-  }
-
-  async saveSettings() {
-    await this.saveData(this.settings);
-  }
-};
-
-// Create the sample modal interface
-// https://docs.obsidian.md/Plugins/User+interface/Modals
-class SampleModal extends Modal {
-  constructor(app) {
-    super(app);
-  }
-
-  onOpen() {
-    this.contentEl.setText("Sample modal!");
-  }
-
-  onClose() {
-    this.contentEl.empty();
-  }
-}
-
-// Create the sample settings interface
-// https://docs.obsidian.md/Plugins/User+interface/Settings
-class SampleSettingTab extends PluginSettingTab {
-  constructor(app, plugin) {
-    super(app, plugin);
+class VisualFSView extends ItemView {
+  constructor(leaf, plugin) {
+    super(leaf);
     this.plugin = plugin;
+    this.currentPath = "/";
   }
 
-  display() {
-    const { containerEl } = this;
+  getViewType() {
+    return VIEW_TYPE_VISUALFS;
+  }
 
-    containerEl.empty();
+  getDisplayText() {
+    return "VisualFS";
+  }
 
-    new Setting(containerEl)
-      .setName("String Setting")
-      .setDesc("Your favorite string")
-      .addText((text) =>
-        text
-          .setPlaceholder("Enter a string")
-          .setValue(this.plugin.settings.myString)
-          .onChange(async (value) => {
-            this.plugin.settings.myString = value;
-            await this.plugin.saveSettings();
-          }),
-      );
+  getIcon() {
+    return "folder-open";
+  }
+
+  async onOpen() {
+    this.renderView();
+  }
+
+  renderView() {
+    const container = this.contentEl;
+    container.empty();
+    container.addClass("visualfs-view");
+
+    // Create header with back button and current path
+    const header = container.createDiv({ cls: "visualfs-header" });
+
+    // Only show back button if not at root
+    if (this.currentPath !== "/") {
+      const backButton = header.createDiv({
+        cls: "visualfs-back-button",
+        text: "Back",
+      });
+      backButton.addEventListener("click", () => {
+        // Go up one level
+        const pathParts = this.currentPath.split("/").filter((p) => p);
+        pathParts.pop(); // Remove last part
+        this.currentPath = pathParts.length ? "/" + pathParts.join("/") : "/";
+        this.renderView();
+      });
+    }
+
+    // Path display
+    const pathDisplay = header.createDiv({
+      cls: "visualfs-path",
+      text: this.currentPath,
+    });
+
+    // Create grid container
+    const grid = container.createDiv({ cls: "visualfs-grid" });
+
+    // Get files and folders in current path
+    this.populateGrid(grid);
+  }
+
+  populateGrid(gridEl) {
+    // Get the current folder
+    let folder;
+
+    if (this.currentPath === "/") {
+      // Root folder
+      folder = this.app.vault.root;
+    } else {
+      // Get specific folder path
+      const folderPath = this.currentPath.slice(1); // Remove leading slash
+      folder = this.app.vault.getAbstractFileByPath(folderPath);
+
+      if (!folder || !(folder instanceof TFolder)) {
+        this.showErrorMessage("Folder not found: " + this.currentPath);
+        this.currentPath = "/";
+        folder = this.app.vault.root;
+      }
+    }
+
+    // Get children sorted: folders first, then files
+    const children = folder.children || [];
+    const sortedChildren = [
+      ...children
+        .filter((f) => f instanceof TFolder)
+        .sort((a, b) => a.name.localeCompare(b.name)),
+      ...children
+        .filter((f) => f instanceof TFile)
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    ];
+
+    if (sortedChildren.length === 0) {
+      gridEl.createDiv({
+        text: "This folder is empty.",
+        cls: "visualfs-empty",
+      });
+      return;
+    }
+
+    // Add each child to the grid
+    sortedChildren.forEach((file) => {
+      const item = gridEl.createDiv({ cls: "visualfs-item" });
+
+      const iconContainer = item.createDiv({ cls: "visualfs-icon-container" });
+
+      if (file instanceof TFolder) {
+        iconContainer.innerHTML =
+          '<svg viewBox="0 0 100 100" class="visualfs-folder" width="24" height="24"><path fill="currentColor" d="M 6,19 V 81 H 94 V 19 Z M 49,45 l 45,0 0,30 -90,0 0,-55 30,0 15,25 z"></path></svg>';
+
+        item.addEventListener("click", () => {
+          this.navigateToFolder(file.path);
+        });
+      } else if (file instanceof TFile) {
+        iconContainer.innerHTML =
+          '<svg viewBox="0 0 100 100" class="visualfs-file" width="24" height="24"><path fill="currentColor" d="M 25,2 V 98 H 75 V 30 L 47,2 Z M 48,29 V 6 L 71,29 Z"></path></svg>';
+
+        item.addEventListener("click", () => {
+          this.openFile(file);
+        });
+      }
+
+      item.createDiv({ text: file.name, cls: "visualfs-item-name" });
+    });
+  }
+
+  navigateToFolder(path) {
+    this.currentPath = "/" + path;
+    this.renderView();
+  }
+
+  async openFile(file) {
+    const leaf = this.app.workspace.getLeaf("split");
+    await leaf.openFile(file);
+  }
+
+  showErrorMessage(message) {
+    new Notice(message);
   }
 }
+
+// Export the main VisualFSPlugin class
+module.exports = class VisualFSPlugin extends Plugin {
+  async onload() {
+    this.registerView(
+      VIEW_TYPE_VISUALFS,
+      (leaf) => new VisualFSView(leaf, this),
+    );
+
+    // Add a ribbon icon to toggle the view
+    this.addRibbonIcon("layout-grid", "Open VisualFS", async () => {
+      await this.toggleView();
+    }).addClass("visualfs-icon");
+
+    // Add command to toggle the view
+    this.addCommand({
+      id: "toggle-visualfs-view",
+      name: "Toggle VisualFS View",
+      callback: async () => {
+        await this.toggleView();
+      },
+    });
+  }
+
+  async onunload() {
+    this.app.workspace.detachLeavesOfType(VIEW_TYPE_VISUALFS);
+  }
+
+  async toggleView() {
+    const { workspace } = this.app;
+
+    // Check if view is already open
+    const existingView = workspace.getLeavesOfType(VIEW_TYPE_VISUALFS)[0];
+
+    if (existingView) {
+      // If view exists, close it
+      workspace.detachLeavesOfType(VIEW_TYPE_VISUALFS);
+      return;
+    }
+
+    // Otherwise, create and open the view
+    const leaf = workspace.getLeaf("split", "vertical");
+    await leaf.setViewState({
+      type: VIEW_TYPE_VISUALFS,
+      active: true,
+    });
+
+    // Reveal the leaf in case it was in a collapsed sidebar
+    workspace.revealLeaf(leaf);
+  }
+};

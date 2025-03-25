@@ -1,38 +1,54 @@
-# Obsidian Simple Sample Plugin
+# VisualFS Plugin for Obsidian
 
-This is a simple sample plugin for [Obsidian](https://obsidian.md). It implements the same examples as [Obsidian Sample Plugin](https://github.com/obsidianmd/obsidian-sample-plugin) but uses plain JavaScript and needs no build step. This works fine for small tasks that meet the following criteria:
+VisualFS is a visual file explorer for [Obsidian](https://obsidian.md) that displays files and folders in a grid-based view. It provides an alternative way to navigate your vault with a visual interface.
 
-- no TypeScript
-- no need to organize code into multiple JavaScript files
-- no external libraries beyond `obsidian`
+## Features
 
-An example of a published plugin using roughly this template is the [Draft Indicator](https://github.com/beardicus/obsidian-draft-indicator-plugin) plugin.
+- Grid-based file explorer view
+- Toggle the view with a ribbon icon or command
+- Navigate folders by clicking on folder icons
+- Open files directly from the grid
+- Back button to navigate up in the folder hierarchy
+- Current path display
 
-## Getting Started
+## How to Use
 
-To get started creating a new Obsidian plugin from plain JavaScript:
+1. Install the plugin in your Obsidian vault
+2. Click the grid icon in the left ribbon or use the command "Toggle VisualFS View"
+3. A new pane will open with the grid view of your vault's root directory
+4. Click on folders to navigate into them
+5. Click on files to open them
+6. Use the "Back" button to navigate up to parent folders
 
-- Make a copy of this repo using the **Use this template** button (log in to GitHub if you don't see it). This will create a new repo in your GitHub account.
-- Clone the new repo to your local development machine. You should clone it into the `.obsidian/plugins/` folder of a vault dedicated to plugin development and testing.
-- Make sure you have Node.js installed.
-- Using a command line terminal, navigate to the plugin repo then run `npm i` to install the JavaScript dependencies.
-- Open the Obsidian vault and install the [**Hot Reload**](https://github.com/pjeby/hot-reload) plugin. This plugin will detect code changes in your plugin during development and automatically reload it.
-- Make changes to the `main.js`, `manifest.json`, and `styles.css` files as needed.
-- Enable your new plugin in the Obsidian settings window.
-- Test and iterate.
+## Navigation
 
-## Releasing New Versions
+- **Opening Files**: Click on any file to open it in a new pane
+- **Navigating Folders**: Click on folder icons to browse into that folder
+- **Going Back**: Use the "Back" button at the top to go to the parent folder
+- **Current Path**: The current path is displayed at the top of the view
 
-This repo contains a GitHub Action at `.github/workflows/release.yml` that will create a draft release every time a new Git tag is pushed to GitHub. See the [official Obsidian plugin docs](https://docs.obsidian.md/Plugins/Releasing/Release+your+plugin+with+GitHub+Actions) for more information on how to release new versions of your plugin.
+## Development
 
-Note that the workflow file shown in the official docs has extra steps for installing Node.js and building the plugin. These are unnecessary in this case.
+This plugin is built with plain JavaScript and requires no build step. It uses the Obsidian API to handle file system interactions and view rendering.
 
-## Submitting Your Plugin
+## Installation
 
-You may follow [the official _Submit your Plugin_ docs](https://docs.obsidian.md/Plugins/Releasing/Submit+your+plugin) to get your plugin added to the plugin directory.
+### From Obsidian Community Plugins
 
-Note that there are some automated PR checks that may fail because the Obsidian developers are expecting the `main.js` file to be built from TypeScript source files, not included directly in the Git repo. This doesn't seem to actually be a problem after human review, so don't worry too much about the `Please remove the main.js file from the repo and add it to your .gitignore.` error you'll probably see.
+*(Once published)*
+1. Open Obsidian Settings
+2. Go to "Community Plugins"
+3. Disable Safe Mode if necessary
+4. Click "Browse" and search for "VisualFS"
+5. Install the plugin
+6. Enable the plugin in your list of installed plugins
 
-## More Info
+### Manual Installation
 
-See the [Obsidian Developer Docs](https://docs.obsidian.md) for more information on Obsidian plugin development.
+1. Download the latest release from the GitHub repository
+2. Extract the zip file into your `.obsidian/plugins/` folder
+3. Enable the plugin in your Obsidian settings
+
+## License
+
+This project is licensed under the MIT License.

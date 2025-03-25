@@ -1,5 +1,5 @@
 {
-	"name": "simple-sample-plugin",
+	"name": "visualfs",
 	"version": "1.0.0",
 	"main": "main.js",
 	"devDependencies": {
