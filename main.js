@@ -130,9 +130,17 @@ class VisualFSView extends ItemView {
           cls: "visualfs-folder-contents",
         });
 
+        const sortedChildren = file.children?.sort((a, b) => {
+          const aTime =
+            a instanceof TFolder ? this.getFolderMtime(a) : a.stat.mtime;
+          const bTime =
+            b instanceof TFolder ? this.getFolderMtime(b) : b.stat.mtime;
+          return bTime - aTime; // Descending order (newest first)
+        });
+
         // Add each child with appropriate icon
-        file.children?.forEach((child) => {
-          const icon = child instanceof TFolder ? "📁" : "📄";
+        sortedChildren.forEach((child) => {
+          const icon = child instanceof TFolder ? "🗂️" : "📄";
           contentList.createDiv({
             text: `${icon} ${child.name}`,
             cls: "visualfs-folder-child",
