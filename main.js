@@ -97,7 +97,7 @@ class VisualFSView extends ItemView {
         sortedChildren.forEach((child) => {
           const icon = child instanceof TFolder ? "🗂️" : "📄";
           contentList.createDiv({
-            text: `${icon} ${child.name}`,
+            text: `${icon} ${this.formatFileName(child.name)}`,
             cls: "visualfs-folder-child",
           });
         });
@@ -199,7 +199,7 @@ class VisualFSView extends ItemView {
     // Use the plugin's render method if available, otherwise fallback to text
     try {
       if (!content.trim().startsWith("# ")) {
-        content = `# ${file.name.replace(/\.md$/, "")}\n\n${content}`;
+        content = `# ${this.formatFileName(file.name)}\n\n${content}`;
       }
       await MarkdownRenderer.render(this, content, contentEl, file.path);
     } catch (renderError) {
@@ -220,6 +220,10 @@ class VisualFSView extends ItemView {
     });
   }
 }
+
+VisualFSView.prototype.formatFileName = function (name) {
+  return name.replace(/\.md$/, "");
+};
 
 /**
  * Formats a timestamp into a human-readable string showing days since modification
