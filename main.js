@@ -1,13 +1,21 @@
-const { ItemView, Notice, Plugin, TFolder, TFile } = require("obsidian");
+const {
+  ItemView,
+  Notice,
+  Plugin,
+  TFolder,
+  TFile,
+  MarkdownRenderer,
+} = require("obsidian");
 
 const VIEW_TYPE_VISUALFS = "visualfs-view";
-const FILE_PREVIEW_CONTENT_LENGTH = 300;
+const FILE_PREVIEW_CONTENT_LENGTH = 500;
 
 class VisualFSView extends ItemView {
   constructor(leaf, plugin) {
     super(leaf);
     this.plugin = plugin;
     this.currentPath = "/";
+    this.component = this; // Add component reference for MarkdownRenderer
   }
 
   getViewType() {
@@ -64,6 +72,7 @@ class VisualFSView extends ItemView {
 
   populateGrid(gridEl) {
     // Get the current folder
+    /** @type TFolder */
     let folder;
 
     if (this.currentPath === "/") {
@@ -120,10 +129,8 @@ class VisualFSView extends ItemView {
       } else if (file instanceof TFile) {
         square.addClass("visualfs-file-square");
 
-        // Get first few words of the file content (up to 50 characters)
-        this.getFilePreview(file).then((preview) => {
-          square.createDiv({ text: preview, cls: "visualfs-square-content" });
-        });
+        // Get file preview content
+        this.getFilePreview(file, square);
 
         item.addEventListener("click", () => {
           this.openFile(file);
@@ -148,11 +155,38 @@ class VisualFSView extends ItemView {
     new Notice(message);
   }
 
-  async getFilePreview(file) {
+  async getFilePreview(file, container) {
     try {
-      // Only get preview for text files
+      // Handle markdown files with renderMarkdown helper function from plugin
+      if (file.extension === "md") {
+        // Create a container for the markdown preview
+        const contentEl = container.createDiv({
+          cls: "visualfs-square-content visualfs-md-preview",
+        });
+
+        let content = await this.app.vault.cachedRead(file);
+
+        // Use the plugin's render method if available, otherwise fallback to text
+        if (this.renderMarkdown) {
+          try {
+            if (!content.trim().startsWith("# ")) {
+              content = `# ${file.name}\n\n${content}`;
+            }
+            await MarkdownRenderer.render(this, content, contentEl, file.path);
+          } catch (renderError) {
+            console.error("Markdown render error:", renderError);
+            contentEl.setText(content);
+          }
+        } else {
+          // Fallback if renderMarkdown is not available
+          contentEl.setText(content);
+        }
+
+        return;
+      }
+
+      // Handle other text files
       if (
-        file.extension === "md" ||
         file.extension === "txt" ||
         file.extension === "js" ||
         file.extension === "css" ||
@@ -160,15 +194,29 @@ class VisualFSView extends ItemView {
         file.extension === "json"
       ) {
         const content = await this.app.vault.cachedRead(file);
-        // Get first few words, up to 50 characters
-        return (
+        const preview =
           content.trim().substring(0, FILE_PREVIEW_CONTENT_LENGTH) +
-          (content.length > FILE_PREVIEW_CONTENT_LENGTH ? "..." : "")
-        );
+          (content.length > FILE_PREVIEW_CONTENT_LENGTH ? "..." : "");
+
+        container.createDiv({
+          text: preview,
+          cls: "visualfs-square-content",
+        });
+
+        return;
       }
-      return file.extension.toUpperCase() + " file";
+
+      // Handle other file types
+      container.createDiv({
+        text: file.extension.toUpperCase() + " file",
+        cls: "visualfs-square-content",
+      });
     } catch (error) {
-      return "Preview unavailable";
+      console.error("Error getting file preview:", error);
+      container.createDiv({
+        text: "Preview unavailable",
+        cls: "visualfs-square-content",
+      });
     }
   }
 }
@@ -176,10 +224,24 @@ class VisualFSView extends ItemView {
 // Export the main VisualFSPlugin class
 module.exports = class VisualFSPlugin extends Plugin {
   async onload() {
-    this.registerView(
-      VIEW_TYPE_VISUALFS,
-      (leaf) => new VisualFSView(leaf, this),
-    );
+    // Register the markdown processor with the component
+    this.registerMarkdownPostProcessor = (processor) => {
+      this.app.markdownPostProcessor.registerPostProcessor(processor);
+    };
+
+    // Add function to easily render markdown
+    this.renderMarkdown = async (markdown, el, sourcePath) => {
+      el.innerHTML = "";
+      await MarkdownRenderer.render(markdown, el, sourcePath, this);
+      return;
+    };
+
+    this.registerView(VIEW_TYPE_VISUALFS, (leaf) => {
+      const view = new VisualFSView(leaf, this);
+      // Pass the plugin's render method to the view
+      view.renderMarkdown = this.renderMarkdown;
+      return view;
+    });
 
     // Add a ribbon icon to toggle the view
     this.addRibbonIcon("layout-grid", "Open VisualFS", async () => {
