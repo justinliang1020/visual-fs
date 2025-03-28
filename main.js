@@ -142,7 +142,7 @@ class VisualFSView extends ItemView {
         );
         item.createDiv({
           text: `last modified ${daysSinceModified} days ago`,
-          cls: "visualfs-item-name",
+          cls: "visualfs-item-metadata",
         });
       }
     });

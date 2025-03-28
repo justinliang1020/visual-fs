@@ -124,7 +124,7 @@ VisualFS plugin CSS
   /* Additional file-specific styling if needed */
 }
 
-.visualfs-item-name {
+.visualfs-item-metadata {
   font-size: 12px;
   word-break: break-word;
   overflow: hidden;
