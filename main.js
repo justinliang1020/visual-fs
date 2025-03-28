@@ -92,11 +92,13 @@ class VisualFSView extends ItemView {
 
     // Get children sorted by last modified time
     const children = folder.children || [];
-    
+
     // Sort all children by mtime (most recent first)
     const sortedChildren = children.sort((a, b) => {
-      const aTime = a instanceof TFolder ? this.getFolderMtime(a) : a.stat.mtime;
-      const bTime = b instanceof TFolder ? this.getFolderMtime(b) : b.stat.mtime;
+      const aTime =
+        a instanceof TFolder ? this.getFolderMtime(a) : a.stat.mtime;
+      const bTime =
+        b instanceof TFolder ? this.getFolderMtime(b) : b.stat.mtime;
       return bTime - aTime; // Descending order (newest first)
     });
 
@@ -125,7 +127,7 @@ class VisualFSView extends ItemView {
         item.addEventListener("click", () => {
           this.navigateToFolder(file.path);
         });
-        
+
         // Get the folder's last modified time
         const folderMtime = this.getFolderMtime(file);
         if (folderMtime > 0) {
@@ -133,9 +135,15 @@ class VisualFSView extends ItemView {
           const daysSinceModified = Math.floor(
             (Date.now() - date.getTime()) / (1000 * 60 * 60 * 24),
           );
-          
+          let text = "";
+          if (daysSinceModified == 0) {
+            text = "Today";
+          } else {
+            text = `${daysSinceModified} days ago`;
+          }
+
           item.createDiv({
-            text: `${daysSinceModified} days ago`,
+            text: text,
             cls: "visualfs-item-metadata",
           });
         }
@@ -153,9 +161,15 @@ class VisualFSView extends ItemView {
         const daysSinceModified = Math.floor(
           (Date.now() - date.getTime()) / (1000 * 60 * 60 * 24),
         );
+        let text = "";
+        if (daysSinceModified == 0) {
+          text = "Today";
+        } else {
+          text = `${daysSinceModified} days ago`;
+        }
 
         item.createDiv({
-          text: `${daysSinceModified} days ago`,
+          text: text,
           cls: "visualfs-item-metadata",
         });
       }
@@ -175,19 +189,21 @@ class VisualFSView extends ItemView {
   showErrorMessage(message) {
     new Notice(message);
   }
-  
+
   getFolderMtime(folder) {
     if (!folder.children || folder.children.length === 0) {
       return 0; // Default timestamp for empty folders
     }
-    
+
     // Get the most recent mtime from all children
-    return Math.max(...folder.children.map(child => {
-      if (child instanceof TFolder) {
-        return this.getFolderMtime(child);
-      }
-      return child.stat.mtime;
-    }));
+    return Math.max(
+      ...folder.children.map((child) => {
+        if (child instanceof TFolder) {
+          return this.getFolderMtime(child);
+        }
+        return child.stat.mtime;
+      }),
+    );
   }
 
   async getFilePreview(file, container) {
@@ -204,7 +220,7 @@ class VisualFSView extends ItemView {
         // Use the plugin's render method if available, otherwise fallback to text
         try {
           if (!content.trim().startsWith("# ")) {
-            content = `# ${file.name}\n\n${content}`;
+            content = `# ${file.name.replace(/\.md$/, "")}\n\n${content}`;
           }
           await MarkdownRenderer.render(this, content, contentEl, file.path);
         } catch (renderError) {
