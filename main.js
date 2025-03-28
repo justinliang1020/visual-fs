@@ -271,6 +271,10 @@ VisualFSView.prototype.createBreadcrumbPath = function (container) {
 
   // If we're at root, just show the home icon
   if (this.currentPath === "/") {
+    pathEl.createSpan({
+      cls: "visualfs-path-separator",
+      text: "/",
+    });
     return;
   }
 

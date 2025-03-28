@@ -134,6 +134,7 @@ VisualFS plugin CSS
 
 .visualfs-folder-square {
   /* Folder block styling */
+  width: 350px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -143,7 +144,7 @@ VisualFS plugin CSS
 
 .visualfs-folder-name {
   font-weight: bold;
-  font-size: 16px;
+  font-size: 24px;
   margin-bottom: 10px;
   width: 100%;
   border-bottom: 1px solid rgba(0, 0, 0, 0.3);
@@ -152,6 +153,7 @@ VisualFS plugin CSS
 
 .visualfs-folder-contents {
   width: 100%;
+  font-size: 16px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
