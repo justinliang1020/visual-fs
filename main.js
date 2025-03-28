@@ -140,8 +140,9 @@ class VisualFSView extends ItemView {
         const daysSinceModified = Math.floor(
           (Date.now() - date.getTime()) / (1000 * 60 * 60 * 24),
         );
+
         item.createDiv({
-          text: `last modified ${daysSinceModified} days ago`,
+          text: `${daysSinceModified} days ago`,
           cls: "visualfs-item-metadata",
         });
       }
