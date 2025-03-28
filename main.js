@@ -136,7 +136,14 @@ class VisualFSView extends ItemView {
           this.openFile(file);
         });
 
-        item.createDiv({ text: file.name, cls: "visualfs-item-name" });
+        const date = new Date(file.stat.mtime);
+        const daysSinceModified = Math.floor(
+          (Date.now() - date.getTime()) / (1000 * 60 * 60 * 24),
+        );
+        item.createDiv({
+          text: `last modified ${daysSinceModified} days ago`,
+          cls: "visualfs-item-name",
+        });
       }
     });
   }
