@@ -118,10 +118,25 @@ class VisualFSView extends ItemView {
 
       if (file instanceof TFolder) {
         square.addClass("visualfs-folder-square");
-        const folderContent = `${file.name} (${file.children?.length || 0})`;
+
+        // Create folder name heading
         square.createDiv({
-          text: folderContent,
-          cls: "visualfs-square-content",
+          text: file.name,
+          cls: "visualfs-square-content visualfs-folder-name",
+        });
+
+        // Create content list
+        const contentList = square.createDiv({
+          cls: "visualfs-folder-contents",
+        });
+
+        // Add each child with appropriate icon
+        file.children?.forEach((child) => {
+          const icon = child instanceof TFolder ? "📁" : "📄";
+          contentList.createDiv({
+            text: `${icon} ${child.name}`,
+            cls: "visualfs-folder-child",
+          });
         });
 
         item.addEventListener("click", () => {
