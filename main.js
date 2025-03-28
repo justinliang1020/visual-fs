@@ -40,29 +40,11 @@ class VisualFSView extends ItemView {
     container.empty();
     container.addClass("visualfs-view");
 
-    // Create header with back button and current path
+    // Create header with interactive breadcrumb path
     const header = container.createDiv({ cls: "visualfs-header" });
 
-    // Only show back button if not at root
-    if (this.currentPath !== "/") {
-      const backButton = header.createDiv({
-        cls: "visualfs-back-button",
-        text: "Back",
-      });
-      backButton.addEventListener("click", () => {
-        // Go up one level
-        const pathParts = this.currentPath.split("/").filter((p) => p);
-        pathParts.pop(); // Remove last part
-        this.currentPath = pathParts.length ? "/" + pathParts.join("/") : "/";
-        this.renderView();
-      });
-    }
-
-    // Path display
-    header.createDiv({
-      cls: "visualfs-path",
-      text: this.currentPath,
-    });
+    // Create the breadcrumb navigation
+    this.createBreadcrumbPath(header);
 
     // Create grid container
     const grid = container.createDiv({ cls: "visualfs-grid" });
@@ -263,6 +245,55 @@ VisualFSView.prototype.sortFilesByTime = function (files) {
     const aTime = a instanceof TFolder ? this.getFolderMtime(a) : a.stat.mtime;
     const bTime = b instanceof TFolder ? this.getFolderMtime(b) : b.stat.mtime;
     return bTime - aTime; // Descending order (newest first)
+  });
+};
+
+/**
+ * Creates an interactive breadcrumb path navigation
+ * @param {HTMLElement} container - The container element to add the breadcrumb to
+ */
+VisualFSView.prototype.createBreadcrumbPath = function (container) {
+  const pathEl = container.createDiv({ cls: "visualfs-breadcrumb-path" });
+
+  // Add home icon that navigates to root
+  const homeIcon = pathEl.createSpan({
+    cls: "visualfs-home-icon",
+    text: "🏠",
+  });
+  homeIcon.addEventListener("click", () => {
+    this.currentPath = "/";
+    this.renderView();
+  });
+
+  // If we're at root, just show the home icon
+  if (this.currentPath === "/") {
+    return;
+  }
+
+  // Split the path into segments and create clickable links
+  const pathParts = this.currentPath.split("/").filter((p) => p);
+
+  pathParts.forEach((part, index) => {
+    // Add a separator
+    pathEl.createSpan({
+      cls: "visualfs-path-separator",
+      text: "/",
+    });
+
+    // Create the folder part that's clickable
+    const folderLink = pathEl.createSpan({
+      cls: "visualfs-path-folder",
+      text: part,
+    });
+
+    // Calculate the path for this segment
+    const pathToHere = "/" + pathParts.slice(0, index + 1).join("/");
+
+    // Make it clickable
+    folderLink.addEventListener("click", () => {
+      this.currentPath = pathToHere;
+      this.renderView();
+    });
   });
 };
 

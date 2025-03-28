@@ -22,24 +22,35 @@ VisualFS plugin CSS
   gap: 10px;
 }
 
-.visualfs-back-button {
-  cursor: pointer;
-  padding: 3px 10px;
-  border-radius: 4px;
-  background-color: var(--interactive-accent);
-  color: var(--text-on-accent);
-}
-
-.visualfs-back-button:hover {
-  opacity: 0.9;
-}
-
-.visualfs-path {
+.visualfs-breadcrumb-path {
   font-size: 16px;
   flex-grow: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.visualfs-home-icon {
+  cursor: pointer;
+  font-size: 18px;
+  margin-right: 2px;
+}
+
+.visualfs-path-separator {
+  margin: 0 2px;
+  color: var(--text-normal);
+}
+
+.visualfs-path-folder {
+  color: var(--link-color);
+  cursor: pointer;
+}
+
+.visualfs-path-folder:hover {
+  text-decoration: underline;
 }
 
 .visualfs-grid {
