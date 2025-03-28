@@ -292,6 +292,23 @@ module.exports = class VisualFSPlugin extends Plugin {
       return view;
     });
 
+    // BUG: weird component missing error
+    // app.js:1 Error: Plugin "visualfs" is not passing Component in renderMarkdown. This is needed to avoid memory leaks when embedded contents register global event handlers.
+    // at t.render (app.js:1:1512063)
+    // at VisualFSView.getFilePreview (VM147 plugin:visualfs:240:34)
+    //
+    // // Register the markdown processor with the component
+    // this.registerMarkdownPostProcessor = (processor) => {
+    //   this.app.markdownPostProcessor.registerPostProcessor(processor);
+    // };
+    //
+    // // Add function to easily render markdown
+    // this.renderMarkdown = async (markdown, el, sourcePath) => {
+    //   el.innerHTML = "";
+    //   await MarkdownRenderer.render(markdown, el, sourcePath, this);
+    //   return;
+    // };
+
     // Add a ribbon icon to toggle the view
     this.addRibbonIcon("layout-grid", "Open VisualFS", async () => {
       await this.toggleView();
