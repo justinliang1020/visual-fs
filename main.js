@@ -74,20 +74,19 @@ class VisualFSView extends ItemView {
     // Add each child to the grid
     sortedChildren.forEach((file) => {
       const item = gridEl.createDiv({ cls: "visualfs-item" });
-
-      const square = item.createDiv({ cls: "visualfs-square" });
+      const container = item.createDiv({ cls: "visualfs-container" });
 
       if (file instanceof TFolder) {
-        square.addClass("visualfs-folder-square");
+        container.addClass("visualfs-folder-container");
 
         // Create folder name heading
-        square.createDiv({
+        container.createDiv({
           text: file.name,
-          cls: "visualfs-square-content visualfs-folder-name",
+          cls: "visualfs-container-content visualfs-folder-name",
         });
 
         // Create content list
-        const contentList = square.createDiv({
+        const contentList = container.createDiv({
           cls: "visualfs-folder-contents",
         });
 
@@ -115,10 +114,10 @@ class VisualFSView extends ItemView {
           });
         }
       } else if (file instanceof TFile) {
-        square.addClass("visualfs-file-square");
+        container.addClass("visualfs-file-container");
 
         // Get file preview content
-        this.getFilePreview(file, square);
+        this.getFilePreview(file, container);
 
         item.addEventListener("click", () => {
           this.openFile(file);
@@ -177,13 +176,13 @@ class VisualFSView extends ItemView {
       // Handle other file types
       container.createDiv({
         text: file.extension.toUpperCase() + " file",
-        cls: "visualfs-square-content",
+        cls: "visualfs-container-content",
       });
     } catch (error) {
       console.error("Error getting file preview:", error);
       container.createDiv({
         text: "Preview unavailable",
-        cls: "visualfs-square-content",
+        cls: "visualfs-container-content",
       });
     }
   }
@@ -191,7 +190,7 @@ class VisualFSView extends ItemView {
   async renderMarkdownPreview(file, container) {
     // Create a container for the markdown preview
     const contentEl = container.createDiv({
-      cls: "visualfs-square-content visualfs-md-preview",
+      cls: "visualfs-container-content visualfs-md-preview",
     });
 
     let content = await this.app.vault.cachedRead(file);
@@ -216,7 +215,7 @@ class VisualFSView extends ItemView {
 
     container.createDiv({
       text: preview,
-      cls: "visualfs-square-content",
+      cls: "visualfs-container-content",
     });
   }
 }

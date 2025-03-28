@@ -74,8 +74,8 @@ VisualFS plugin CSS
   background-color: var(--background-modifier-hover);
 }
 
-/* Square styling - consistent dimensions with black border */
-.visualfs-square {
+/* container styling - consistent dimensions with black border */
+.visualfs-container {
   width: var(--visualfs-width);
   height: var(--visualfs-height);
   border: 2px solid black;
@@ -87,7 +87,7 @@ VisualFS plugin CSS
   overflow: hidden;
 }
 
-.visualfs-square-content {
+.visualfs-container-content {
   font-size: 12px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -132,7 +132,7 @@ VisualFS plugin CSS
   overflow: auto;
 }
 
-.visualfs-folder-square {
+.visualfs-folder-container {
   /* Folder block styling */
   width: 350px;
   display: flex;
@@ -168,11 +168,11 @@ VisualFS plugin CSS
   color: var(--tab-text-color);
 }
 
-.visualfs-file-square {
+.visualfs-file-container {
   /* Additional file-specific styling if needed */
 }
 
-.visualfs-file-square h1 {
+.visualfs-file-container h1 {
   font-size: 24px;
   /* Additional file-specific styling if needed */
 }
