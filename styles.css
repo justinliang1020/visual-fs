@@ -67,6 +67,7 @@ VisualFS plugin CSS
   align-items: center;
   cursor: pointer;
   transition: background-color 0.2s ease;
+  padding: 10px;
 }
 
 .visualfs-item:hover {
