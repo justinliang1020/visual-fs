@@ -174,18 +174,13 @@ class VisualFSView extends ItemView {
         let content = await this.app.vault.cachedRead(file);
 
         // Use the plugin's render method if available, otherwise fallback to text
-        if (this.renderMarkdown) {
-          try {
-            if (!content.trim().startsWith("# ")) {
-              content = `# ${file.name}\n\n${content}`;
-            }
-            await MarkdownRenderer.render(this, content, contentEl, file.path);
-          } catch (renderError) {
-            console.error("Markdown render error:", renderError);
-            contentEl.setText(content);
+        try {
+          if (!content.trim().startsWith("# ")) {
+            content = `# ${file.name}\n\n${content}`;
           }
-        } else {
-          // Fallback if renderMarkdown is not available
+          await MarkdownRenderer.render(this, content, contentEl, file.path);
+        } catch (renderError) {
+          console.error("Markdown render error:", renderError);
           contentEl.setText(content);
         }
 
@@ -231,18 +226,6 @@ class VisualFSView extends ItemView {
 // Export the main VisualFSPlugin class
 module.exports = class VisualFSPlugin extends Plugin {
   async onload() {
-    // Register the markdown processor with the component
-    this.registerMarkdownPostProcessor = (processor) => {
-      this.app.markdownPostProcessor.registerPostProcessor(processor);
-    };
-
-    // Add function to easily render markdown
-    this.renderMarkdown = async (markdown, el, sourcePath) => {
-      el.innerHTML = "";
-      await MarkdownRenderer.render(markdown, el, sourcePath, this);
-      return;
-    };
-
     this.registerView(VIEW_TYPE_VISUALFS, (leaf) => {
       const view = new VisualFSView(leaf, this);
       // Pass the plugin's render method to the view
