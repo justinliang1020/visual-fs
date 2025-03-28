@@ -90,16 +90,15 @@ class VisualFSView extends ItemView {
       }
     }
 
-    // Get children sorted: folders first, then files
+    // Get children sorted by last modified time
     const children = folder.children || [];
-    const sortedChildren = [
-      ...children
-        .filter((f) => f instanceof TFolder)
-        .sort((a, b) => a.name.localeCompare(b.name)),
-      ...children
-        .filter((f) => f instanceof TFile)
-        .sort((a, b) => a.name.localeCompare(b.name)),
-    ];
+    
+    // Sort all children by mtime (most recent first)
+    const sortedChildren = children.sort((a, b) => {
+      const aTime = a instanceof TFolder ? this.getFolderMtime(a) : a.stat.mtime;
+      const bTime = b instanceof TFolder ? this.getFolderMtime(b) : b.stat.mtime;
+      return bTime - aTime; // Descending order (newest first)
+    });
 
     if (sortedChildren.length === 0) {
       gridEl.createDiv({
@@ -126,6 +125,20 @@ class VisualFSView extends ItemView {
         item.addEventListener("click", () => {
           this.navigateToFolder(file.path);
         });
+        
+        // Get the folder's last modified time
+        const folderMtime = this.getFolderMtime(file);
+        if (folderMtime > 0) {
+          const date = new Date(folderMtime);
+          const daysSinceModified = Math.floor(
+            (Date.now() - date.getTime()) / (1000 * 60 * 60 * 24),
+          );
+          
+          item.createDiv({
+            text: `${daysSinceModified} days ago`,
+            cls: "visualfs-item-metadata",
+          });
+        }
       } else if (file instanceof TFile) {
         square.addClass("visualfs-file-square");
 
@@ -161,6 +174,20 @@ class VisualFSView extends ItemView {
 
   showErrorMessage(message) {
     new Notice(message);
+  }
+  
+  getFolderMtime(folder) {
+    if (!folder.children || folder.children.length === 0) {
+      return 0; // Default timestamp for empty folders
+    }
+    
+    // Get the most recent mtime from all children
+    return Math.max(...folder.children.map(child => {
+      if (child instanceof TFolder) {
+        return this.getFolderMtime(child);
+      }
+      return child.stat.mtime;
+    }));
   }
 
   async getFilePreview(file, container) {
