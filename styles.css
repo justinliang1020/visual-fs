@@ -126,6 +126,11 @@ VisualFS plugin CSS
   /* Additional file-specific styling if needed */
 }
 
+.visualfs-file-square h1 {
+  font-size: 24px;
+  /* Additional file-specific styling if needed */
+}
+
 .visualfs-item-metadata {
   font-size: 12px;
   word-break: break-word;
