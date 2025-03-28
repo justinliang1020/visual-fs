@@ -60,6 +60,8 @@ VisualFS plugin CSS
 }
 
 .visualfs-item {
+  width: calc(var(--visualfs-width) + 20px);
+  height: calc(var(--visualfs-height) + 10px);
   display: flex;
   flex-direction: column;
   align-items: center;
