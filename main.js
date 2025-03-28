@@ -9,6 +9,7 @@ const {
 
 const VIEW_TYPE_VISUALFS = "visualfs-view";
 const FILE_PREVIEW_CONTENT_LENGTH = 500;
+const TEXT_EXTENSIONS = ["txt", "js", "css", "html", "json"];
 
 class VisualFSView extends ItemView {
   constructor(leaf, plugin) {
@@ -71,36 +72,14 @@ class VisualFSView extends ItemView {
   }
 
   populateGrid(gridEl) {
-    // Get the current folder
     /** @type TFolder */
-    let folder;
-
-    if (this.currentPath === "/") {
-      // Root folder
-      folder = this.app.vault.root;
-    } else {
-      // Get specific folder path
-      const folderPath = this.currentPath.slice(1); // Remove leading slash
-      folder = this.app.vault.getAbstractFileByPath(folderPath);
-
-      if (!folder || !(folder instanceof TFolder)) {
-        this.showErrorMessage("Folder not found: " + this.currentPath);
-        this.currentPath = "/";
-        folder = this.app.vault.root;
-      }
-    }
+    let folder = this.getCurrentFolder();
 
     // Get children sorted by last modified time
     const children = folder.children || [];
 
     // Sort all children by mtime (most recent first)
-    const sortedChildren = children.sort((a, b) => {
-      const aTime =
-        a instanceof TFolder ? this.getFolderMtime(a) : a.stat.mtime;
-      const bTime =
-        b instanceof TFolder ? this.getFolderMtime(b) : b.stat.mtime;
-      return bTime - aTime; // Descending order (newest first)
-    });
+    const sortedChildren = this.sortFilesByTime(children);
 
     if (sortedChildren.length === 0) {
       gridEl.createDiv({
@@ -130,13 +109,7 @@ class VisualFSView extends ItemView {
           cls: "visualfs-folder-contents",
         });
 
-        const sortedChildren = file.children?.sort((a, b) => {
-          const aTime =
-            a instanceof TFolder ? this.getFolderMtime(a) : a.stat.mtime;
-          const bTime =
-            b instanceof TFolder ? this.getFolderMtime(b) : b.stat.mtime;
-          return bTime - aTime; // Descending order (newest first)
-        });
+        const sortedChildren = this.sortFilesByTime(file.children || []);
 
         // Add each child with appropriate icon
         sortedChildren.forEach((child) => {
@@ -154,19 +127,8 @@ class VisualFSView extends ItemView {
         // Get the folder's last modified time
         const folderMtime = this.getFolderMtime(file);
         if (folderMtime > 0) {
-          const date = new Date(folderMtime);
-          const daysSinceModified = Math.floor(
-            (Date.now() - date.getTime()) / (1000 * 60 * 60 * 24),
-          );
-          let text = "";
-          if (daysSinceModified == 0) {
-            text = "Today";
-          } else {
-            text = `${daysSinceModified} days ago`;
-          }
-
           item.createDiv({
-            text: text,
+            text: this.formatDate(folderMtime),
             cls: "visualfs-item-metadata",
           });
         }
@@ -180,19 +142,8 @@ class VisualFSView extends ItemView {
           this.openFile(file);
         });
 
-        const date = new Date(file.stat.mtime);
-        const daysSinceModified = Math.floor(
-          (Date.now() - date.getTime()) / (1000 * 60 * 60 * 24),
-        );
-        let text = "";
-        if (daysSinceModified == 0) {
-          text = "Today";
-        } else {
-          text = `${daysSinceModified} days ago`;
-        }
-
         item.createDiv({
-          text: text,
+          text: this.formatDate(file.stat.mtime),
           cls: "visualfs-item-metadata",
         });
       }
@@ -231,47 +182,13 @@ class VisualFSView extends ItemView {
 
   async getFilePreview(file, container) {
     try {
-      // Handle markdown files with renderMarkdown helper function from plugin
       if (file.extension === "md") {
-        // Create a container for the markdown preview
-        const contentEl = container.createDiv({
-          cls: "visualfs-square-content visualfs-md-preview",
-        });
-
-        let content = await this.app.vault.cachedRead(file);
-
-        // Use the plugin's render method if available, otherwise fallback to text
-        try {
-          if (!content.trim().startsWith("# ")) {
-            content = `# ${file.name.replace(/\.md$/, "")}\n\n${content}`;
-          }
-          await MarkdownRenderer.render(this, content, contentEl, file.path);
-        } catch (renderError) {
-          console.error("Markdown render error:", renderError);
-          contentEl.setText(content);
-        }
-
+        await this.renderMarkdownPreview(file, container);
         return;
       }
 
-      // Handle other text files
-      if (
-        file.extension === "txt" ||
-        file.extension === "js" ||
-        file.extension === "css" ||
-        file.extension === "html" ||
-        file.extension === "json"
-      ) {
-        const content = await this.app.vault.cachedRead(file);
-        const preview =
-          content.trim().substring(0, FILE_PREVIEW_CONTENT_LENGTH) +
-          (content.length > FILE_PREVIEW_CONTENT_LENGTH ? "..." : "");
-
-        container.createDiv({
-          text: preview,
-          cls: "visualfs-square-content",
-        });
-
+      if (TEXT_EXTENSIONS.includes(file.extension)) {
+        await this.renderTextPreview(file, container);
         return;
       }
 
@@ -288,9 +205,90 @@ class VisualFSView extends ItemView {
       });
     }
   }
+
+  async renderMarkdownPreview(file, container) {
+    // Create a container for the markdown preview
+    const contentEl = container.createDiv({
+      cls: "visualfs-square-content visualfs-md-preview",
+    });
+
+    let content = await this.app.vault.cachedRead(file);
+
+    // Use the plugin's render method if available, otherwise fallback to text
+    try {
+      if (!content.trim().startsWith("# ")) {
+        content = `# ${file.name.replace(/\.md$/, "")}\n\n${content}`;
+      }
+      await MarkdownRenderer.render(this, content, contentEl, file.path);
+    } catch (renderError) {
+      console.error("Markdown render error:", renderError);
+      contentEl.setText(content);
+    }
+  }
+
+  async renderTextPreview(file, container) {
+    const content = await this.app.vault.cachedRead(file);
+    const preview =
+      content.trim().substring(0, FILE_PREVIEW_CONTENT_LENGTH) +
+      (content.length > FILE_PREVIEW_CONTENT_LENGTH ? "..." : "");
+
+    container.createDiv({
+      text: preview,
+      cls: "visualfs-square-content",
+    });
+  }
 }
 
-// Export the main VisualFSPlugin class
+/**
+ * Formats a timestamp into a human-readable string showing days since modification
+ * @param {number} timestamp - Unix timestamp in milliseconds
+ * @returns {string} Human readable string either "Today" or "X days ago"
+ */
+VisualFSView.prototype.formatDate = function (timestamp) {
+  const date = new Date(timestamp);
+  const daysSinceModified = Math.floor(
+    (Date.now() - date.getTime()) / (1000 * 60 * 60 * 24),
+  );
+
+  return daysSinceModified === 0 ? "Today" : `${daysSinceModified} days ago`;
+};
+
+/**
+ * Sorts an array of files and folders by their modification time in descending order
+ * @param {Array<TFile|TFolder>} files - Array of files and folders to sort
+ * @returns {Array<TFile|TFolder>} Sorted array with newest items first
+ */
+VisualFSView.prototype.sortFilesByTime = function (files) {
+  return files.sort((a, b) => {
+    const aTime = a instanceof TFolder ? this.getFolderMtime(a) : a.stat.mtime;
+    const bTime = b instanceof TFolder ? this.getFolderMtime(b) : b.stat.mtime;
+    return bTime - aTime; // Descending order (newest first)
+  });
+};
+
+/**
+ * Gets the current folder based on the currentPath property
+ * @returns {TFolder} The current folder object. Returns root folder if path is "/" or if specified folder not found
+ */
+VisualFSView.prototype.getCurrentFolder = function () {
+  if (this.currentPath === "/") {
+    // Root folder
+    return this.app.vault.root;
+  }
+
+  // Get specific folder path
+  const folderPath = this.currentPath.slice(1); // Remove leading slash
+  const folder = this.app.vault.getAbstractFileByPath(folderPath);
+
+  if (!folder || !(folder instanceof TFolder)) {
+    this.showErrorMessage("Folder not found: " + this.currentPath);
+    this.currentPath = "/";
+    return this.app.vault.root;
+  }
+
+  return folder;
+};
+
 module.exports = class VisualFSPlugin extends Plugin {
   async onload() {
     this.registerView(VIEW_TYPE_VISUALFS, (leaf) => {
